@@ -12,6 +12,7 @@
 #include <locale>
 
 
+
 void searchword(Dictionary head[], std::string word, std::vector<std::string> & ArrErrors);
 int insertword(Dictionary head[], std::vector<std::string>& ArrErrors);
 std::wstring stringToWstring(const std::string& str);
@@ -26,7 +27,7 @@ int main()
   SetConsoleOutputCP(CP_UTF8);
   
    insertword(head , ArrErrors);
-   searchword(head,"",ArrErrors);
+   searchword(head,"מקלדת",ArrErrors);
 
   return 0;
 }
