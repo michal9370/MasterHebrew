@@ -1,0 +1,2066 @@
+Summary:
+ - Directory: c:\Users\User\Desktop\MasterHebrew\VisualCodeMasterHebrew
+ - Files processed: 13
+ - Total lines: 1949
+ - Duration: 0.01 seconds
+================================================================================
+Directory Structure:
+
+├── old/
+│   ├── ddd.py
+│   ├── gggg.cpp
+│   ├── save.cpp
+│   └── Syntax.cpp
+├── Dictionary.cpp
+├── Dictionary.h
+├── EndWordObject.cpp
+├── EndWordObject.h
+├── Main.cpp
+├── Main.h
+├── ValueObject.cpp
+├── ValueObject.h
+└── words.txt
+
+Files extracted:
+Dictionary.cpp (starts at line 1)
+Dictionary.h (starts at line 9)
+EndWordObject.cpp (starts at line 21)
+EndWordObject.h (starts at line 29)
+Main.cpp (starts at line 41)
+Main.h (starts at line 313)
+ValueObject.cpp (starts at line 314)
+ValueObject.h (starts at line 327)
+words.txt (starts at line 344)
+old\ddd.py (starts at line 1355)
+old\gggg.cpp (starts at line 1607)
+old\save.cpp (starts at line 1879)
+old\Syntax.cpp (starts at line 1949)
+
+================================================================================
+
+File: Dictionary.cpp (starts at line 1)
+
+#include "Dictionary.h"
+#include "ValueObject.h"
+
+Dictionary::Dictionary()
+ {
+    letter = "";
+    valueObject = nullptr;
+ }
+
+
+================================================================================
+
+File: Dictionary.h (starts at line 9)
+
+#pragma once // מונע טעינה כפולה של הקובץ
+#include "ValueObject.h"
+#include <string>
+
+class Dictionary
+{
+public:
+std::string letter = " ";
+ValueObject* valueObject ;
+
+Dictionary();
+};
+
+
+================================================================================
+
+File: EndWordObject.cpp (starts at line 21)
+
+#include "EndWordObject.h"
+#include <iostream>
+
+EndWordObject::EndWordObject() 
+{
+   IndexArrErrors = -1; 
+}
+
+
+
+================================================================================
+
+File: EndWordObject.h (starts at line 29)
+
+#pragma once // מונע טעינה כפולה של הקובץ
+#include <string>
+
+class EndWordObject
+{
+public:
+int IndexArrErrors;
+std::wstring CorrectWord = L" ";
+
+EndWordObject();//הצהרה על בנאי בסיסי
+};
+
+
+
+================================================================================
+
+File: Main.cpp (starts at line 41)
+
+﻿#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include "Dictionary.h"
+#include "EndWordObject.h"
+#include "ValueObject.h"
+#include <vector>
+#include <codecvt>
+#include <algorithm>
+#include <windows.h> 
+#include <locale>
+
+
+void searchword(Dictionary head[], std::string word, std::vector<std::string> & ArrErrors);
+int insertword(Dictionary head[], std::vector<std::string>& ArrErrors);
+std::wstring stringToWstring(const std::string& str);
+std::string wstringToString(const std::wstring& wstr);
+
+int main()
+{
+  
+  std::vector<std::string> ArrErrors = {"correct"};
+  Dictionary head[27] = {};
+  
+  SetConsoleOutputCP(CP_UTF8);
+  
+   insertword(head , ArrErrors);
+   searchword(head,"",ArrErrors);
+
+  return 0;
+}
+
+
+
+
+int insertword(Dictionary head[], std::vector<std::string> & ArrErrors)
+{
+    // פתיחת זרם קריאה מהקובץ במצב בינארי כדי לשמור על מבנה התווים המקורי
+    std::ifstream inFile("words.txt", std::ios::binary);
+    if (!inFile.is_open()) 
+    {
+        std::cout << "Error: Could not open file." << std::endl;
+        return 1;
+    }
+
+    std::string line;
+    while (std::getline(inFile, line)) 
+    {
+        if (!line.empty())
+        {
+            std::stringstream ss(line);
+            std::string word;
+            Dictionary* nextDict = head;
+            int index = 0;
+            
+             // קריאת המילה הראשונה בשורה
+            ss >> word;
+            
+            // הדפסה 1: הצגת המילה שמעובדת כעת
+            std::cout << "Word: " << word << std::endl;
+            
+            // דילוג על רווחים מיותרים בשורה
+            ss >> std::ws;
+
+            // אם הגענו לסוף השורה, המילה תקינה (אין מילה תקינה בהמשך)
+            bool ifCorrect = ss.eof();
+
+            // הדפסה 2: האם המילה תקינה או שגויה
+            if (ifCorrect) {
+                std::cout << "Status: Correct" << std::endl;
+            } else {
+                std::cout << "Status: Wrong" << std::endl;
+            }
+
+            // UTF-8 לולאה למעבר על אותיות המילה הנוכחית. בדילוגים של 2 בתים עבור תווים בעברית בקידוד
+            for (int i = 0; i < (int)word.length(); i += 2) 
+            {
+                std::string thisLetter = word.substr(i, 2);
+                unsigned char sbyte = word[i + 1];
+                index = sbyte - 144;
+
+                // בדיקה אם זו האות האחרונה במילה
+                bool isLast = (i + 2 >= (int)word.length()); 
+
+                if (index >= 0 && index <= 26) 
+                {
+                    nextDict[index].letter = thisLetter;
+                    if (nextDict[index].valueObject == nullptr) 
+                    {
+                        nextDict[index].valueObject = new ValueObject();
+                    }
+
+                    if (isLast && ifCorrect) 
+                    {
+                        EndWordObject endWordObj;
+                        endWordObj.IndexArrErrors = 0;
+                        nextDict[index].valueObject->endWordObjects.push_back(endWordObj);
+                    }
+                    
+                    if (!isLast)
+                    {
+                        if (nextDict[index].valueObject->ArrNextLetters == nullptr) 
+                        {
+                            nextDict[index].valueObject->ArrNextLetters = new Dictionary[27]();
+                        }
+                        nextDict = nextDict[index].valueObject->ArrNextLetters;
+                    }
+                }
+            }
+
+            if (!ifCorrect) 
+            {
+                std::string correctW;
+                std::string CurrentError;
+
+                // קריאת המילה המתוקנת (המילה השנייה בשורה)
+                ss >> correctW;  
+                
+                std::string wordPart;
+
+                // קריאת שאר המילים בשורה המהוות את תיאור השגיאה
+                while (ss >> wordPart) 
+                {
+                    CurrentError += (CurrentError.empty() ? "" : " ") + wordPart;
+                }
+
+                // הדפסה 3: פירוט השגיאה (אם המילה שגויה)
+                std::cout << "Error Detail: " << CurrentError << std::endl;
+
+                EndWordObject endWordObjL;
+                endWordObjL.CorrectWord = stringToWstring(correctW);
+                
+                // חיפוש האם תיאור השגיאה כבר קיים בוקטור השגיאות
+                int i = 0;
+                while (i < (int)ArrErrors.size() && ArrErrors[i] != CurrentError) 
+                {
+                    i++;
+                }
+                
+                // אם השגיאה חדשה, נוסיף אותה למאגר השגיאות
+                if (i == (int)ArrErrors.size() && !CurrentError.empty()) 
+                {
+                    ArrErrors.push_back(CurrentError);
+                }
+                
+                endWordObjL.IndexArrErrors = (CurrentError.empty() ? 0 : i);
+                nextDict[index].valueObject->endWordObjects.push_back(endWordObjL);
+            }
+
+            // הדפסה 5: הפרדה ויזואלית בקונסולה בין מילה למילה
+            std::cout << "-------------------" << std::endl;
+        }
+    }
+    inFile.close();
+    return 0;
+}
+
+
+
+
+std::wstring stringToWstring(const std::string& str)
+ {
+    if (str.empty()) return std::wstring();
+
+    // 1. חישוב גודל המחרוזת הנדרש (בתווי wchat_t)
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), NULL, 0);
+    
+    // 2. יצירת מחרוזת wstring בגודל המתאים
+    std::wstring wstr(size_needed, 0);
+    
+    // 3. ביצוע ההמרה בפועל
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), &wstr[0], size_needed);
+    
+    return wstr;
+}
+
+
+std::string wstringToString(const std::wstring& wstr)
+ {
+    if (wstr.empty()) return std::string();
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), NULL, 0, NULL, NULL);
+    std::string strTo(size_needed, 0);
+    WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, NULL, NULL);
+    return strTo;
+}
+
+
+void searchword(Dictionary head[], std::string word, std::vector<std::string>& ArrErrors)
+{
+    //הדפסה 1: הדפסת המילה לחיפוש
+    std::cout << "the word for search: " << word << std::endl;
+    int index = 0;
+    unsigned char sbyte;
+    std::string thisLetter;
+    Dictionary* nextDict = head;
+    int i = 0;
+
+    while (i < (int)word.length() && nextDict != nullptr)
+    {
+        thisLetter = word.substr(i, 2);
+        sbyte = word[i + 1];
+        index = sbyte - 144;
+
+        if (index >= 0 && index <= 26 && nextDict[index].letter == thisLetter)
+        {
+            if (i + 2 < (int)word.length()) // אות אמצעית
+            {
+                
+                if (nextDict[index].valueObject != nullptr && nextDict[index].valueObject->ArrNextLetters != nullptr)
+                {
+                    nextDict = nextDict[index].valueObject->ArrNextLetters;
+                    i += 2; 
+                }
+                else
+                {
+                    // אם אין המשך לעץ באמצע המילה - המילה לא קיימת
+                    std::cout << "There word does'nt exist" << std::endl;
+                    nextDict = nullptr; // יגרום להפסקת הלולאה
+                }
+            }
+            else // אות אחרונה
+            {
+                
+                if (nextDict[index].valueObject == nullptr || nextDict[index].valueObject->endWordObjects.empty())
+                {
+                    // המילה קיימת בעץ אך לא מסומנת כסוף מילה
+                    std::cout << "Not found" << std::endl;
+                }
+                else
+                {
+                    int size = nextDict[index].valueObject->endWordObjects.size();
+                    
+                    for (int j = 0; j < size; j++)
+                    {
+                        if (ArrErrors[nextDict[index].valueObject->endWordObjects[j].IndexArrErrors] == "correct")
+                        {
+                            std::cout << "There word is correct" << std::endl;
+                        }
+                        else
+                        {
+                            // הדפסת פרטי השגיאה/ות והמילה/ים המתוקנת/ות עבור מילה שגויה
+                            std::cout << j << ":";
+                            std::cout << "correct word: " << wstringToString(nextDict[index].valueObject->endWordObjects[j].CorrectWord) << std::endl;
+                            std::cout << "wrong: " << ArrErrors[nextDict[index].valueObject->endWordObjects[j].IndexArrErrors] << std::endl;
+                        }
+                    }
+                }
+                nextDict = nullptr; // סימן לסיום החיפוש בהצלחה, יגרום להפסקת הלולאה
+                i += 2;
+            }
+        }
+        else
+        {
+            // אם האות לא נמצאה במיקום הנוכחי בעץ או שיש בה תו לא חוקי
+            std::cout << "There word does'nt exist" << std::endl;
+            nextDict = nullptr; // יגרום להפסקת הלולאה
+        }
+    }
+
+    if (i == 0 && word.empty())
+    {
+        // המילה שהוזנה לחיפוש הייתה ריקה
+        std::cout << "This word is empty" << std::endl;
+    }
+}
+
+
+
+
+
+
+
+
+================================================================================
+
+File: Main.h (starts at line 313)
+
+
+
+
+================================================================================
+
+File: ValueObject.cpp (starts at line 314)
+
+#include "ValueObject.h"
+#include "Dictionary.h" 
+
+
+
+ValueObject::ValueObject() {
+
+        ArrNextLetters = nullptr;
+    
+    }
+
+
+
+
+
+================================================================================
+
+File: ValueObject.h (starts at line 327)
+
+#pragma once // מונע טעינה כפולה של הקובץ
+#include "EndWordObject.h"
+#include "ValueObject.h"
+#include <vector>
+
+
+class Dictionary;
+
+class ValueObject
+{
+    public:
+    std::vector<EndWordObject> endWordObjects;
+    Dictionary* ArrNextLetters;
+
+    ValueObject();
+};
+
+
+
+================================================================================
+
+File: words.txt (starts at line 344)
+
+מחשב
+
+
+
+
+
+
+
+
+
+
+
+מקלדת
+מסך
+זיכרון
+מעבד
+תוכנה
+חומרה
+רשת
+תקשורת
+נתונים
+חלון
+דלת
+קיר
+רצפה
+תקרה
+רהיט
+ארון
+מדף
+שולחן
+כיסא
+ספר
+עט
+נייר
+יומן
+קלסר
+חוברת
+מפה
+שעון
+משקפיים
+תיק
+עץ
+פרח
+עלה
+צמח
+גינה
+שדה
+נוף
+טבע
+סלע
+אבן
+שמש
+ירח
+כוכב
+ענן
+גשם
+רוח
+שלג
+ברק
+רעם
+קשת
+לחם
+חלב
+מים
+פרי
+ירק
+מזון
+ארוחה
+תפריט
+כף
+מזלג
+דרך
+כביש
+שביל
+רחוב
+צומת
+גשר
+בניין
+מבנה
+חצר
+מגרש
+בגד
+חולצה
+מכנסיים
+נעל
+מעיל
+כובע
+צעיף
+גרב
+כפפה
+חגורה
+מספר
+חשבון
+הנדסה
+צורה
+נקודה
+קו
+זווית
+שטח
+נפח
+משקל
+כתב
+קרא
+למד
+הבין
+חשב
+אמר
+שאל
+ענה
+הסביר
+פירט
+הלך
+רץ
+עמד
+ישב
+נכנס
+יצא
+עלה
+ירד
+עבר
+חזר
+בנה
+תיקן
+שיפר
+שינה
+יצר
+פיתח
+תכנן
+עיצב
+הפעיל
+בדק
+ראה
+שמע
+הרגיש
+הריח
+טעם
+נגע
+מצא
+חיפש
+איבד
+החזיק
+נתן
+קיבל
+קנה
+מכר
+שלח
+אסף
+הניח
+לקח
+פתח
+סגר
+גדול
+קטן
+רחב
+צר
+ארוך
+קצר
+גבוה
+נמוך
+עמוק
+שטוח
+חדש
+ישן
+עתיק
+מודרני
+מהיר
+איטי
+חזק
+חלש
+כבד
+קל
+חם
+קר
+יבש
+רטוב
+נקי
+מלוכלך
+בהיר
+כהה
+שקוף
+אטום
+טוב
+יפה
+נעים
+מעניין
+חשוב
+מרכזי
+פשוט
+מורכב
+יעיל
+מדויק
+ראשון
+אחרון
+נוסף
+שונה
+דומה
+מלא
+ריק
+חלקי
+שלם
+יחיד
+תפוח
+מלוח
+מפתח
+צבוע
+רקיע
+גבוה
+רצוח
+נפוח
+שמוע
+מנוח
+סלוח
+בטוח
+פתוח
+כוח
+מוח
+רוח
+לוח
+טיוח
+קיפוח
+ניפוח
+עכשיו
+אבטיח
+מטבח
+תכלת
+כתובת
+חוכמה
+כדור
+טעות
+סוכה
+קול
+כלב
+צחוק
+שוק
+שק
+כוס
+חול
+חולצה
+עורף
+אופק
+תמונה
+אוטובוס
+רכבת
+מטוס
+ספינה
+יער
+מדבר
+ים
+נהר
+אגם
+בקבוק
+צלחת
+כוס
+סכין
+כפית
+מלח
+פלפל
+סוכר
+שמן
+אורז
+קמח
+ביצה
+גבינה
+חמאה
+ריבה
+דבש
+בשר
+דג
+מרק
+סלט
+עגבנייה
+מלפפון
+בצל
+גזר
+תפוח
+בננה
+ענבים
+לימון
+תפוז
+אפרסק
+שזיף
+תות
+אבטיח
+מלון
+אגוז
+שקד
+בוטנים
+דובדבן
+תמר
+זית
+מלחמה
+שלום
+חופש
+זמן
+שנה
+חודש
+שבוע
+יום
+שעה
+דקה
+שנייה
+בוקר
+צהריים
+ערב
+לילה
+קיץ
+חורף
+סתיו
+אביב
+צבע
+אדום
+כחול
+ירוק
+צהוב
+כתום
+סגול
+חום
+שחור
+לבן
+אפור
+ורוד
+תכלת
+זהב
+כסף
+מבריק
+מט
+חלק
+מחוספס
+קשה
+רך
+גמיש
+קשיח
+יציב
+חזק
+חלש
+אמיץ
+חכם
+נבון
+זריז
+זהיר
+שקט
+רועש
+עסוק
+חופשי
+מוכן
+גמור
+מיוחד
+רגיל
+נפוץ
+נדיר
+קרוב
+רחוק
+ימינה
+שמאלה
+קדימה
+אחורה
+למעלה
+למטה
+בפנים
+בחוץ
+מעל
+מתחת
+ליד
+מול
+בין
+אצל
+עבור
+בגלל
+למרות
+אולי
+באמת
+יחד
+לחוד
+לבד
+ידית
+מנעול
+מפתח
+פעמון
+שלט
+סוללה
+כבל
+תקע
+שקע
+אור
+חושך
+צל
+אש
+עשן
+אפר
+עפר
+אבק
+בוץ
+חול
+מלח
+סבון
+מגבת
+מברשת
+משחה
+מסרק
+מראה
+תמונה
+מסגרת
+ציור
+פסל
+מתנה
+ברכה
+חגיגה
+מסיבה
+ריקוד
+שיר
+נגינה
+צליל
+רעש
+שקט
+דיבור
+שיחה
+מפגש
+ביקור
+אירוח
+שלום
+להתראות
+תודה
+סליחה
+בבקשה
+חשוב
+דחוף
+הכרחי
+אפשרי
+מותר
+אסור
+כדאי
+ראוי
+נכון
+צודק
+טעות
+צדק
+אמת
+שקר
+סוד
+רמז
+סימן
+אות
+מילה
+משפט
+סיפור
+שיר
+דף
+עמוד
+פרק
+חלק
+סוף
+התחלה
+אמצע
+תמיד
+לעולם
+לפעמים
+עכשיו
+מחר
+אתמול
+היום
+השנה
+החודש
+השבוע
+תינוק
+ילד
+נער
+בחור
+גבר
+אישה
+זקן
+סבא
+סבתא
+אבא
+אמא
+אח
+אחות
+דוד
+דודה
+בן
+בת
+נכד
+נכדה
+חבר
+חברה
+שכן
+שכנה
+מורה
+תלמיד
+מנהל
+עובד
+מעסיק
+רופא
+אחות
+חייל
+שוטר
+נהג
+טייס
+מלח
+נגר
+צייר
+פסנתרן
+זמר
+שחקן
+סופר
+משורר
+חוקר
+מדען
+מהנדס
+רוקח
+אופה
+טבח
+מלצר
+מנקה
+גנן
+ספר
+מוכר
+לקוח
+אורח
+בעלים
+שותף
+קבוצה
+צוות
+קהל
+ציבור
+עם
+מדינה
+עיר
+כפר
+מושב
+קיבוץ
+שכונה
+רחוב
+מספר
+קומה
+דירה
+חדר
+מטבח
+סלון
+אמבטיה
+שירותים
+מרפסת
+גינה
+חצר
+מחסן
+חניה
+גג
+מרתף
+מעלית
+מדרגות
+מעקה
+יציאה
+כניסה
+חירום
+בטיחות
+זהירות
+סכנה
+עזרה
+סיוע
+תמיכה
+טיפול
+שירות
+מוצר
+איכות
+מחיר
+עלות
+רווח
+הפסד
+תקציב
+כסף
+שקל
+מטבע
+שטר
+חשבון
+בנק
+כרטיס
+אשראי
+קנייה
+מכירה
+הזמנה
+משלוח
+קבלה
+חשבונית
+חתימה
+אישור
+הסכם
+חוזה
+חוק
+כלל
+מנהג
+מסורת
+תרבות
+שפה
+מבטא
+קול
+צליל
+לחן
+קצב
+תנועה
+צעד
+קפיצה
+ריצה
+הליכה
+עמידה
+ישיבה
+שכיבה
+נפילה
+טיפוס
+גלישה
+שחייה
+טיסה
+נסיעה
+הפלגה
+חניה
+עצירה
+המשך
+התקדמות
+נסיגה
+שינוי
+שיפור
+הצלחה
+ניצחון
+הישג
+מטרה
+יעד
+תוכנית
+חלום
+רצון
+כוונה
+מחשבה
+דעה
+החלטה
+בחירה
+פעולה
+מעשה
+תוצאה
+סיבה
+קשר
+יחס
+אהבה
+שמחה
+אושר
+חיוך
+צחוק
+תקווה
+אמונה
+ביטחון
+אומץ
+גבורה
+כבוד
+יושר
+אמת
+אחריות
+סבלנות
+סובלנות
+עזרה
+נתינה
+חסד
+טובה
+ברכה
+הצלחה
+בריאות
+רפואה
+כושר
+כוח
+מרץ
+אנרגיה
+מנוחה
+שינה
+חום
+קור
+מזג
+אוויר
+רוח
+ענן
+שמים
+אדמה
+קרקע
+תהום
+הר
+גבעה
+עמק
+מישור
+חוף
+אי
+חצי
+עולם
+חלל
+כוכב
+לכת
+מערכת
+שמש
+גלקסיה
+אבק
+חומר
+יסוד
+אטום
+מולקולה
+אנרגיה
+חשמל
+מגנט
+קרינה
+חום
+אור
+קול
+גלים
+תדר
+עוצמה
+מתח
+זרם
+התנגדות
+קיבול
+השראה
+רכיב
+מעגל
+לוח
+הלחמה
+בדיל
+חוט
+בידוד
+ציפוי
+פלסטיק
+מתכת
+ברזל
+נחושת
+אלומיניום
+זהב
+כסף
+פלדה
+עץ
+אבן
+זכוכית
+בד
+עור
+נייר
+קרטון
+חומר
+גלם
+תהליך
+ייצור
+מפעל
+מכונה
+מכשיר
+כלי
+עבודה
+תיקון
+תחזוקה
+בדיקה
+מדידה
+דיוק
+סטייה
+שגיאה
+תיקון
+שיפור
+ייעול
+פיתוח
+חדשנות
+המצאה
+פטנט
+תגלית
+מחקר
+ניסוי
+תוצאה
+מסקנה
+הוכחה
+עובדה
+נתון
+מידע
+ידע
+חכמה
+תבונה
+הבנה
+תפיסה
+זיכרון
+למידה
+הדרכה
+חינוך
+הוראה
+בית
+ספר
+כיתה
+לוח
+גיר
+מחברת
+עיפרון
+מחק
+סרגל
+תיק
+מבחן
+ציון
+תעודה
+תואר
+מקצוע
+עבודה
+קריירה
+תפקיד
+אחריות
+סמכות
+ניהול
+מנהיגות
+ארגון
+חברה
+עסק
+מפעל
+משרד
+שולחן
+מחשב
+טלפון
+דואר
+הודעה
+קובץ
+תיקייה
+גיבוי
+אבטחה
+סיסמה
+גישה
+משתמש
+מערכת
+הפעלה
+תוכנה
+יישום
+אתר
+אינטרנט
+דפדפן
+חיפוש
+קישור
+כתובת
+שרת
+ענן
+אחסון
+שיתוף
+תצוגה
+עיצוב
+צבע
+גופן
+גודל
+רווח
+שוליים
+כותרת
+תוכן
+סיכום
+הערה
+מקור
+הפניה
+מפתח
+אינדקס
+רשימה
+טבלה
+תרשים
+גרף
+מפה
+תמונה
+איור
+צילום
+סרטון
+קול
+שמע
+מוזיקה
+שיר
+מילים
+לחן
+עיבוד
+ביצוע
+הקלטה
+שידור
+קליטה
+אנטנה
+תדר
+שידור
+רדיו
+טלוויזיה
+מסך
+תמונה
+צבע
+בהירות
+חדות
+רזולוציה
+פיקסל
+נקודה
+קו
+צורה
+מבנה
+מסגרת
+רקע
+קדמה
+סגנון
+אופי
+תכונה
+מראה
+פנים
+עיניים
+פה
+אוזן
+אף
+שיער
+יד
+רגל
+גוף
+ראש
+לב
+דם
+נשימה
+קול
+תנועה
+מגע
+תחושה
+רגש
+מחשבה
+נפש
+רוח
+חיים
+מוות
+לידה
+צמיחה
+התפתחות
+שינוי
+התאמה
+הישרדות
+סביבה
+חברה
+קהילה
+משפחה
+ידידות
+קשר
+יחס
+הבנה
+הסכמה
+מחלוקת
+פתרון
+פשרה
+שלום
+שלווה
+רוגע
+נחת
+שמחה
+גיל
+דיון
+שיח
+נאום
+הרצאה
+סיפור
+תיאור
+הסבר
+הוכחה
+טענה
+נימוק
+סיכום
+סוף
+
+
+הני אני ה=א
+קלבה כלבה ק=כ
+ככמה חכמה כ ראשונה=ח
+קכול כחול  ק=כ, כ=ח
+סמחה שמחה  ס=ש
+עבטיח אבטיח ע=א
+כולצה חולצה כ=ח
+טכלת תכלת ט=ת
+כיר קיר כ=ק
+כום חום כ=ח
+כמח קמח  כ=ק
+שגול סגול  ש=ס
+כצר חצר  כ=ח
+מפתכ מפתח  כ=ח
+כשיח קשיח  כ=ק
+טקרה תקרה  ט=ת
+כורף חורף  כ=ח
+כבוצה קבוצה  כ=ק
+טפריט תפריט  ט=ת
+אנבים ענבים  א=ע
+כזק חזק  כ=ח
+טקווה תקווה  ט=ת
+אגבנייה עגבנייה  א=ע
+כות חוט  כ=ח
+אתיק עתיק  א=ע
+ככם חכם  כ=ח
+כריאה קריאה  כ=ק
+שמל סמל  ש=ס
+טחזוכה תחזוקה  ט=ת, כ=ק
+כבוא קבוע  כ=ק, א=ע
+שוף סוף  ש=ס
+עדמה אדמה  ע=א
+תפואח תפוח ציון בכתב של פתח גנובה
+מלואח מלוח ציון בכתב של פתח גנובה
+מפתאח מפתח ציון בכתב של פתח גנובה
+רצואח רצוח ציון בכתב של פתח גנובה
+נפואח נפוח ציון בכתב של פתח גנובה
+מנואח מנוח ציון בכתב של פתח גנובה
+סלואח סלוח ציון בכתב של פתח גנובה
+בטואח בטוח ציון בכתב של פתח גנובה
+פתואח פתוח ציון בכתב של פתח גנובה
+כואח כוח ציון בכתב של פתח גנובה
+מואח מוח ציון בכתב של פתח גנובה
+רואח רוח ציון בכתב של פתח גנובה
+לואח לוח ציון בכתב של פתח גנובה
+טיואח טיוח ציון בכתב של פתח גנובה
+קיפואח קיפוח ציון בכתב של פתח גנובה
+ניפואח ניפוח ציון בכתב של פתח גנובה
+שלואח שלוח ציון בכתב של פתח גנובה
+צלואח צלוח ציון בכתב של פתח גנובה
+נינואח נינוח ציון בכתב של פתח גנובה
+פיצואח פיצוח ציון בכתב של פתח גנובה
+קלואח קלוח ציון בכתב של פתח גנובה
+סרואח סרוח ציון בכתב של פתח גנובה
+קידואח קידוח ציון בכתב של פתח גנובה
+ניסואח ניסוח ציון בכתב של פתח גנובה
+דיוואח דיווח ציון בכתב של פתח גנובה
+שיבואח שיבוח ציון בכתב של פתח גנובה
+ניצואח ניצוח ציון בכתב של פתח גנובה
+פיקואח פיקוח ציון בכתב של פתח גנובה
+טיפואח טיפוח ציון בכתב של פתח גנובה
+קינואח קינוח ציון בכתב של פתח גנובה
+
+
+================================================================================
+
+File: old\ddd.py (starts at line 1355)
+
+# include <iostream>
+# include <fstream>
+# include <string>
+# include <sstream>
+# include "Dictionary.h"
+# include "EndWordObject.h"
+# include "ValueObject.h"
+# include <vector>
+# include <codecvt>
+# include <algorithm>
+# include <windows.h> 
+# include <locale>
+
+
+# void searchword(Dictionary head[], std::string word, std::vector<std::string> & ArrErrors);
+# int insertword(Dictionary head[], std::vector<std::string>& ArrErrors);
+# std::wstring stringToWstring(const std::string& str);
+# std::string wstringToString(const std::wstring& wstr);
+
+# int main()
+# {
+  
+#   std::vector<std::string> ArrErrors = {"correct"};
+#   Dictionary head[27] = {};
+  
+#   SetConsoleOutputCP(CP_UTF8);
+  
+#    insertword(head , ArrErrors);
+#    searchword(head,"מקלדת",ArrErrors);
+
+#   return 0;
+# }
+
+
+
+
+# int insertword(Dictionary head[], std::vector<std::string> & ArrErrors)
+# {
+#     std::ifstream inFile("words.txt", std::ios::binary);
+#     if (!inFile.is_open()) 
+#     {
+#         std::cout << "Error: Could not open file." << std::endl;
+#         return 1;
+#     }
+
+#     std::string line;
+#     while (std::getline(inFile, line)) 
+#     {
+#         if (!line.empty())
+#         {
+#             std::stringstream ss(line);
+#             std::string word;
+#             Dictionary* nextDict = head;
+#             int index = 0;
+            
+#             ss >> word; 
+            
+#             // הדפסה 1: המילה הנוכחית (המילה הראשונה בשורה)
+#             std::cout << "Word: " << word << std::endl;
+            
+#             ss >> std::ws;
+#             bool ifCorrect = ss.eof();
+
+#             // הדפסה 2: האם המילה תקינה או שגויה
+#             if (ifCorrect) {
+#                 std::cout << "Status: Correct" << std::endl;
+#             } else {
+#                 std::cout << "Status: Wrong" << std::endl;
+#             }
+
+#             for (int i = 0; i < (int)word.length(); i += 2) 
+#             {
+#                 std::string thisLetter = word.substr(i, 2);
+#                 unsigned char sbyte = word[i + 1];
+#                 index = sbyte - 144;
+#                 bool isLast = (i + 2 >= (int)word.length());
+
+#                 if (index >= 0 && index <= 26) 
+#                 {
+#                     nextDict[index].letter = thisLetter;
+#                     if (nextDict[index].valueObject == nullptr) 
+#                     {
+#                         nextDict[index].valueObject = new ValueObject();
+#                     }
+
+#                     if (isLast && ifCorrect) 
+#                     {
+#                         EndWordObject endWordObj;
+#                         endWordObj.IndexArrErrors = 0;
+#                         nextDict[index].valueObject->endWordObjects.push_back(endWordObj);
+#                     }
+                    
+#                     if (!isLast)
+#                     {
+#                         if (nextDict[index].valueObject->ArrNextLetters == nullptr) 
+#                         {
+#                             nextDict[index].valueObject->ArrNextLetters = new Dictionary[27]();
+#                         }
+#                         nextDict = nextDict[index].valueObject->ArrNextLetters;
+#                     }
+#                 }
+#             }
+
+#             if (!ifCorrect) 
+#             {
+#                 std::string correctW;
+#                 std::string CurrentError;
+#                 ss >> correctW; 
+                
+#                 std::string wordPart;
+#                 while (ss >> wordPart) 
+#                 {
+#                     CurrentError += (CurrentError.empty() ? "" : " ") + wordPart;
+#                 }
+
+#                 // הדפסה 3: פירוט השגיאה (אם המילה שגויה)
+#                 std::cout << "Error Detail: " << CurrentError << std::endl;
+
+#                 EndWordObject endWordObjL;
+#                 endWordObjL.CorrectWord = stringToWstring(correctW);
+                
+#                 int i = 0;
+#                 while (i < (int)ArrErrors.size() && ArrErrors[i] != CurrentError) 
+#                 {
+#                     i++;
+#                 }
+                
+#                 if (i == (int)ArrErrors.size() && !CurrentError.empty()) 
+#                 {
+#                     ArrErrors.push_back(CurrentError);
+#                 }
+                
+#                 endWordObjL.IndexArrErrors = (CurrentError.empty() ? 0 : i);
+#                 nextDict[index].valueObject->endWordObjects.push_back(endWordObjL);
+#             }
+#             std::cout << "-------------------" << std::endl;
+#         }
+#     }
+#     inFile.close();
+#     return 0;
+# }
+
+
+
+
+# std::wstring stringToWstring(const std::string& str)
+#  {
+#     if (str.empty()) return std::wstring();
+
+#     // 1. חישוב גודל המחרוזת הנדרש (בתווי wchat_t)
+#     int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), NULL, 0);
+    
+#     // 2. יצירת מחרוזת wstring בגודל המתאים
+#     std::wstring wstr(size_needed, 0);
+    
+#     // 3. ביצוע ההמרה בפועל
+#     MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), &wstr[0], size_needed);
+    
+#     return wstr;
+# }
+
+
+# std::string wstringToString(const std::wstring& wstr)
+#  {
+#     if (wstr.empty()) return std::string();
+#     int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), NULL, 0, NULL, NULL);
+#     std::string strTo(size_needed, 0);
+#     WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, NULL, NULL);
+#     return strTo;
+# }
+
+
+# void searchword(Dictionary head[], std::string word, std::vector<std::string>& ArrErrors)
+# {
+#     std::cout << "the word for search: " << word << std::endl;
+#     int index = 0;
+#     unsigned char sbyte;
+#     std::string thisLetter;
+#     Dictionary* nextDict = head;
+#     int i = 0;
+
+#     // הלולאה תרוץ כל עוד לא חרגנו מאורך המילה וכל עוד לא הגענו למבוי סתום (nextDict אינו nullptr)
+#     while (i < (int)word.length() && nextDict != nullptr)
+#     {
+#         thisLetter = word.substr(i, 2);
+#         //std::cout << "This letter that i'm searching now: " << thisLetter << std::endl;
+#         sbyte = word[i + 1];
+#         index = sbyte - 144;
+
+#         if (index >= 0 && index <= 26 && nextDict[index].letter == thisLetter)
+#         {
+#             if (i + 2 < (int)word.length()) // אות אמצעית
+#             {
+#                 std::cout << "This letter in the middle: " << thisLetter << std::endl;
+#                 if (nextDict[index].valueObject != nullptr && nextDict[index].valueObject->ArrNextLetters != nullptr)
+#                 {
+#                     nextDict = nextDict[index].valueObject->ArrNextLetters;
+#                     i += 2; 
+#                 }
+#                 else
+#                 {
+#                     std::cout << "There word does'nt exist" << std::endl;
+#                     nextDict = nullptr; // יגרום להפסקת הלולאה
+#                 }
+#             }
+#             else // אות אחרונה
+#             {
+#                 std::cout << "This letter in the last: " << thisLetter << std::endl;
+#                 if (nextDict[index].valueObject == nullptr || nextDict[index].valueObject->endWordObjects.empty())
+#                 {
+#                     std::cout << "Not found" << std::endl;
+#                 }
+#                 else
+#                 {
+#                     int size = nextDict[index].valueObject->endWordObjects.size();
+                    
+#                     for (int j = 0; j < size; j++)
+#                     {
+#                         if (ArrErrors[nextDict[index].valueObject->endWordObjects[j].IndexArrErrors] == "correct")
+#                         {
+#                             std::cout << "There word is correct" << std::endl;
+#                         }
+#                         else
+#                         {
+#                             std::cout << j << ":";
+#                             std::cout << "correct word: " << wstringToString(nextDict[index].valueObject->endWordObjects[j].CorrectWord) << std::endl;
+#                             std::cout << "wrong: " << ArrErrors[nextDict[index].valueObject->endWordObjects[j].IndexArrErrors] << std::endl;
+#                         }
+#                     }
+#                 }
+#                 nextDict = nullptr; // סימן לסיום החיפוש בהצלחה, יגרום להפסקת הלולאה
+#                 i += 2;
+#             }
+#         }
+#         else
+#         {
+#             std::cout << "There word does'nt exist" << std::endl;
+#             nextDict = nullptr; // יגרום להפסקת הלולאה
+#         }
+#     }
+
+#     if (i == 0 && word.empty())
+#     {
+#         std::cout << "This word is empty" << std::endl;
+#     }
+# }
+
+
+
+
+
+
+
+
+================================================================================
+
+File: old\gggg.cpp (starts at line 1607)
+
+// #include <iostream>
+// #include <fstream>
+// #include <string>
+// #include <sstream>
+// #include "Dictionary.h"
+// #include "EndWordObject.h"
+// #include "ValueObject.h"
+// #include <vector>
+// #include <codecvt>
+// #include <algorithm>
+// #include <windows.h> 
+// #include <locale>
+
+
+// void searchword(Dictionary head[], std::string word, std::vector<std::string> & ArrErrors);
+// int insertword(Dictionary head[], std::vector<std::string>& ArrErrors);
+// std::wstring stringToWstring(const std::string& str);
+// std::string wstringToString(const std::wstring& wstr);
+
+// int main()
+// {
+  
+//   std::vector<std::string> ArrErrors = {"correct"};
+//   Dictionary head[27] = {};
+  
+//   SetConsoleOutputCP(CP_UTF8);
+  
+//    insertword(head , ArrErrors);
+//    searchword(head,"מקלדת",ArrErrors);
+
+//   return 0;
+// }
+
+
+
+
+// int insertword(Dictionary head[], std::vector<std::string> & ArrErrors)
+// {
+//     // פתיחת זרם קריאה מהקובץ במצב בינארי כדי לשמור על מבנה התווים המקורי
+//     std::ifstream inFile("words.txt", std::ios::binary);
+//     if (!inFile.is_open()) 
+//     {
+//         std::cout << "Error: Could not open file." << std::endl;
+//         return 1;
+//     }
+
+//     std::string line;
+//     while (std::getline(inFile, line)) 
+//     {
+//         if (!line.empty())
+//         {
+//             std::stringstream ss(line);
+//             std::string word;
+//             Dictionary* nextDict = head;
+//             int index = 0;
+            
+//              // קריאת המילה הראשונה בשורה
+//             ss >> word;
+            
+//             // הדפסה 1: הצגת המילה שמעובדת כעת
+//             std::cout << "Word: " << word << std::endl;
+            
+//             // דילוג על רווחים מיותרים בשורה
+//             ss >> std::ws;
+
+//             // אם הגענו לסוף השורה, המילה תקינה (אין מילה תקינה בהמשך)
+//             bool ifCorrect = ss.eof();
+
+//             // הדפסה 2: האם המילה תקינה או שגויה
+//             if (ifCorrect) {
+//                 std::cout << "Status: Correct" << std::endl;
+//             } else {
+//                 std::cout << "Status: Wrong" << std::endl;
+//             }
+
+//             // UTF-8 לולאה למעבר על אותיות המילה הנוכחית. בדילוגים של 2 בתים עבור תווים בעברית בקידוד
+//             for (int i = 0; i < (int)word.length(); i += 2) 
+//             {
+//                 std::string thisLetter = word.substr(i, 2);
+//                 unsigned char sbyte = word[i + 1];
+//                 index = sbyte - 144;
+
+//                 // בדיקה אם זו האות האחרונה במילה
+//                 bool isLast = (i + 2 >= (int)word.length()); 
+
+//                 if (index >= 0 && index <= 26) 
+//                 {
+//                     nextDict[index].letter = thisLetter;
+//                     if (nextDict[index].valueObject == nullptr) 
+//                     {
+//                         nextDict[index].valueObject = new ValueObject();
+//                     }
+
+//                     if (isLast && ifCorrect) 
+//                     {
+//                         EndWordObject endWordObj;
+//                         endWordObj.IndexArrErrors = 0;
+//                         nextDict[index].valueObject->endWordObjects.push_back(endWordObj);
+//                     }
+                    
+//                     if (!isLast)
+//                     {
+//                         if (nextDict[index].valueObject->ArrNextLetters == nullptr) 
+//                         {
+//                             nextDict[index].valueObject->ArrNextLetters = new Dictionary[27]();
+//                         }
+//                         nextDict = nextDict[index].valueObject->ArrNextLetters;
+//                     }
+//                 }
+//             }
+
+//             if (!ifCorrect) 
+//             {
+//                 std::string correctW;
+//                 std::string CurrentError;
+
+//                 // קריאת המילה המתוקנת (המילה השנייה בשורה)
+//                 ss >> correctW;  
+                
+//                 std::string wordPart;
+
+//                 // קריאת שאר המילים בשורה המהוות את תיאור השגיאה
+//                 while (ss >> wordPart) 
+//                 {
+//                     CurrentError += (CurrentError.empty() ? "" : " ") + wordPart;
+//                 }
+
+//                 // הדפסה 3: פירוט השגיאה (אם המילה שגויה)
+//                 std::cout << "Error Detail: " << CurrentError << std::endl;
+
+//                 EndWordObject endWordObjL;
+//                 endWordObjL.CorrectWord = stringToWstring(correctW);
+                
+//                 // חיפוש האם תיאור השגיאה כבר קיים בוקטור השגיאות
+//                 int i = 0;
+//                 while (i < (int)ArrErrors.size() && ArrErrors[i] != CurrentError) 
+//                 {
+//                     i++;
+//                 }
+                
+//                 // אם השגיאה חדשה, נוסיף אותה למאגר השגיאות
+//                 if (i == (int)ArrErrors.size() && !CurrentError.empty()) 
+//                 {
+//                     ArrErrors.push_back(CurrentError);
+//                 }
+                
+//                 endWordObjL.IndexArrErrors = (CurrentError.empty() ? 0 : i);
+//                 nextDict[index].valueObject->endWordObjects.push_back(endWordObjL);
+//             }
+
+//             // הדפסה 5: הפרדה ויזואלית בקונסולה בין מילה למילה
+//             std::cout << "-------------------" << std::endl;
+//         }
+//     }
+//     inFile.close();
+//     return 0;
+// }
+
+
+
+
+// std::wstring stringToWstring(const std::string& str)
+//  {
+//     if (str.empty()) return std::wstring();
+
+//     // 1. חישוב גודל המחרוזת הנדרש (בתווי wchat_t)
+//     int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), NULL, 0);
+    
+//     // 2. יצירת מחרוזת wstring בגודל המתאים
+//     std::wstring wstr(size_needed, 0);
+    
+//     // 3. ביצוע ההמרה בפועל
+//     MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), &wstr[0], size_needed);
+    
+//     return wstr;
+// }
+
+
+// std::string wstringToString(const std::wstring& wstr)
+//  {
+//     if (wstr.empty()) return std::string();
+//     int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), NULL, 0, NULL, NULL);
+//     std::string strTo(size_needed, 0);
+//     WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, NULL, NULL);
+//     return strTo;
+// }
+
+
+// void searchword(Dictionary head[], std::string word, std::vector<std::string>& ArrErrors)
+// {
+//     //הדפסה 1: הדפסת המילה לחיפוש
+//     std::cout << "the word for search: " << word << std::endl;
+//     int index = 0;
+//     unsigned char sbyte;
+//     std::string thisLetter;
+//     Dictionary* nextDict = head;
+//     int i = 0;
+
+//     while (i < (int)word.length() && nextDict != nullptr)
+//     {
+//         thisLetter = word.substr(i, 2);
+//         sbyte = word[i + 1];
+//         index = sbyte - 144;
+
+//         if (index >= 0 && index <= 26 && nextDict[index].letter == thisLetter)
+//         {
+//             if (i + 2 < (int)word.length()) // אות אמצעית
+//             {
+                
+//                 if (nextDict[index].valueObject != nullptr && nextDict[index].valueObject->ArrNextLetters != nullptr)
+//                 {
+//                     nextDict = nextDict[index].valueObject->ArrNextLetters;
+//                     i += 2; 
+//                 }
+//                 else
+//                 {
+//                     // אם אין המשך לעץ באמצע המילה - המילה לא קיימת
+//                     std::cout << "There word does'nt exist" << std::endl;
+//                     nextDict = nullptr; // יגרום להפסקת הלולאה
+//                 }
+//             }
+//             else // אות אחרונה
+//             {
+                
+//                 if (nextDict[index].valueObject == nullptr || nextDict[index].valueObject->endWordObjects.empty())
+//                 {
+//                     // המילה קיימת בעץ אך לא מסומנת כסוף מילה
+//                     std::cout << "Not found" << std::endl;
+//                 }
+//                 else
+//                 {
+//                     int size = nextDict[index].valueObject->endWordObjects.size();
+                    
+//                     for (int j = 0; j < size; j++)
+//                     {
+//                         if (ArrErrors[nextDict[index].valueObject->endWordObjects[j].IndexArrErrors] == "correct")
+//                         {
+//                             std::cout << "There word is correct" << std::endl;
+//                         }
+//                         else
+//                         {
+//                             // הדפסת פרטי השגיאה/ות והמילה/ים המתוקנת/ות עבור מילה שגויה
+//                             std::cout << j << ":";
+//                             std::cout << "correct word: " << wstringToString(nextDict[index].valueObject->endWordObjects[j].CorrectWord) << std::endl;
+//                             std::cout << "wrong: " << ArrErrors[nextDict[index].valueObject->endWordObjects[j].IndexArrErrors] << std::endl;
+//                         }
+//                     }
+//                 }
+//                 nextDict = nullptr; // סימן לסיום החיפוש בהצלחה, יגרום להפסקת הלולאה
+//                 i += 2;
+//             }
+//         }
+//         else
+//         {
+//             // אם האות לא נמצאה במיקום הנוכחי בעץ או שיש בה תו לא חוקי
+//             std::cout << "There word does'nt exist" << std::endl;
+//             nextDict = nullptr; // יגרום להפסקת הלולאה
+//         }
+//     }
+
+//     if (i == 0 && word.empty())
+//     {
+//         // המילה שהוזנה לחיפוש הייתה ריקה
+//         std::cout << "This word is empty" << std::endl;
+//     }
+// }
+
+
+
+
+
+
+
+
+================================================================================
+
+File: old\save.cpp (starts at line 1879)
+
+// #include "Dictionary.h"
+// #include "EndWordObject.h"
+// #include "ValueObject.h"
+// #include <iostream>
+// #include <fcntl.h> 
+// #include <io.h>    
+// #include <stdio.h> 
+// #include <fstream>   // ספרייה לקריאת קבצים
+// #include <string>    // ספרייה למחרוזות
+// #include <vector>    // ספרייה למערך דינמי
+// #include <locale>
+
+
+// int mainy()
+// {
+// _setmode(_fileno(stdout), _O_U16TEXT);
+// _setmode(_fileno(stdin), _O_U16TEXT);
+
+// Dictionary Head[27]; //מערך ראש של  במבנה המילים 
+// std::wstring word; //משתנה לקליטת המילה הנוכחית מהקובץ
+// std::wstring correctword; //משתנה לקליטת המילה התקנית מהקובץ כאשר מדובר במילה שגויה להכנסה
+// std::wstring error; //משתנה לקליטת השגיאה מהקובץ
+
+
+
+// /////
+
+
+// _setmode(_fileno(stdout), _O_U16TEXT);
+// _setmode(_fileno(stdin), _O_U16TEXT);
+
+// Dictionary Head[27];
+
+// std::vector<std::wstring> wordsArray;
+// std::wifstream inputFile("words.txt");
+// if (!inputFile.is_open()) {
+//     std::wcerr << L"Error: Could not open the file!" << std::endl;
+//     return 1;}
+// else 
+//     std::wcout << L"File opened successfully!" << std::endl;
+
+// std::wstring tempWord;
+//     while (std::getline(inputFile, tempWord))
+//     {
+//         wordsArray.push_back(tempWord); // הוספת המילה לסוף המערך
+//         if (!tempWord.empty() && tempWord[0] == 0xFEFF) tempWord.erase(0, 1);
+//     }
+// inputFile.close();
+// std::wcout << L"Read " << wordsArray.size() << L" words from file:" << std::endl;
+//     for (int i = 0; i < wordsArray.size(); i++) {
+//         std::wcout << L"Word [" << i << L"]: " << wordsArray[i] << std::endl;
+//     }
+
+
+// for (int i=0; i<27; i++)
+// {
+//  Head[i].letter= (wchar_t)(1488 + i);
+// }
+
+// for (int i = 0; i < 27; i++)
+// {
+//     //wchar_t currentLetter = head[i].letter;
+//    // int unicodeValue = int(head[i].letter);
+//     //std::wcout << L"Letter: " << currentLetter << L" | Code: " << unicodeValue << std::endl;
+// }
+// return 0;
+// }
+
+
+
+
+
+================================================================================
+
+File: old\Syntax.cpp (starts at line 1949)
+
+
+
+
+================================================================================
