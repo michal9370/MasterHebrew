@@ -11,12 +11,17 @@
 #include <windows.h> 
 #include <locale>
 
+#include "Syntax.h"
+
 
 
 void searchword(Dictionary head[], std::string word, std::vector<std::string> & ArrErrors);
 int insertword(Dictionary head[], std::vector<std::string>& ArrErrors);
 std::wstring stringToWstring(const std::string& str);
 std::string wstringToString(const std::wstring& wstr);
+
+
+
 
 int main()
 {
@@ -25,11 +30,14 @@ int main()
   Dictionary head[27] = {};
   
   SetConsoleOutputCP(CP_UTF8);
+  SetConsoleCP(CP_UTF8);
   
    insertword(head , ArrErrors);
-   searchword(head,"מקלדת",ArrErrors);
+   searchword(head,"תפואח",ArrErrors);
+   std::string testWord = "יפה"; 
+   pos(testWord);
 
-  return 0;
+   return 0;
 }
 
 
@@ -38,7 +46,7 @@ int main()
 int insertword(Dictionary head[], std::vector<std::string> & ArrErrors)
 {
     // פתיחת זרם קריאה מהקובץ במצב בינארי כדי לשמור על מבנה התווים המקורי
-    std::ifstream inFile("words.txt", std::ios::binary);
+    std::ifstream inFile("../words.txt", std::ios::binary);
     if (!inFile.is_open()) 
     {
         std::cout << "Error: Could not open file." << std::endl;
@@ -59,7 +67,7 @@ int insertword(Dictionary head[], std::vector<std::string> & ArrErrors)
             ss >> word;
             
             // הדפסה 1: הצגת המילה שמעובדת כעת
-            std::cout << "Word: " << word << std::endl;
+            //std::cout << "Word: " << word << std::endl;
             
             // דילוג על רווחים מיותרים בשורה
             ss >> std::ws;
@@ -69,9 +77,9 @@ int insertword(Dictionary head[], std::vector<std::string> & ArrErrors)
 
             // הדפסה 2: האם המילה תקינה או שגויה
             if (ifCorrect) {
-                std::cout << "Status: Correct" << std::endl;
+                //std::cout << "Status: Correct" << std::endl;
             } else {
-                std::cout << "Status: Wrong" << std::endl;
+                //std::cout << "Status: Wrong" << std::endl;
             }
 
             // UTF-8 לולאה למעבר על אותיות המילה הנוכחית. בדילוגים של 2 בתים עבור תווים בעברית בקידוד
@@ -127,7 +135,7 @@ int insertword(Dictionary head[], std::vector<std::string> & ArrErrors)
                 }
 
                 // הדפסה 3: פירוט השגיאה (אם המילה שגויה)
-                std::cout << "Error Detail: " << CurrentError << std::endl;
+                //std::cout << "Error Detail: " << CurrentError << std::endl;
 
                 EndWordObject endWordObjL;
                 endWordObjL.CorrectWord = stringToWstring(correctW);
@@ -150,7 +158,7 @@ int insertword(Dictionary head[], std::vector<std::string> & ArrErrors)
             }
 
             // הדפסה 5: הפרדה ויזואלית בקונסולה בין מילה למילה
-            std::cout << "-------------------" << std::endl;
+            //std::cout << "-------------------" << std::endl;
         }
     }
     inFile.close();
@@ -265,8 +273,6 @@ void searchword(Dictionary head[], std::string word, std::vector<std::string>& A
         std::cout << "This word is empty" << std::endl;
     }
 }
-
-
 
 
 

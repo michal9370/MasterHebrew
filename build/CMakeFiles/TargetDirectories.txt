@@ -1,0 +1,3 @@
+C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/build/CMakeFiles/MasterHebrew.dir
+C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/build/CMakeFiles/edit_cache.dir
+C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/build/CMakeFiles/rebuild_cache.dir

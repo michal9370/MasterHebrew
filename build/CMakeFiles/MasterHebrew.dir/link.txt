@@ -1,0 +1,3 @@
+"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E rm -f CMakeFiles\MasterHebrew.dir/objects.a
+C:\msys64\ucrt64\bin\ar.exe qc CMakeFiles\MasterHebrew.dir/objects.a @CMakeFiles\MasterHebrew.dir\objects1.rsp
+C:\msys64\ucrt64\bin\g++.exe -g -Wl,--whole-archive CMakeFiles\MasterHebrew.dir/objects.a -Wl,--no-whole-archive -o MasterHebrew.exe -Wl,--out-implib,libMasterHebrew.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\MasterHebrew.dir\linklibs.rsp

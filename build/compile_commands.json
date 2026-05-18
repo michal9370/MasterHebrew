@@ -1,0 +1,32 @@
+[
+{
+  "directory": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DCURL_STATICLIB @CMakeFiles/MasterHebrew.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MasterHebrew.dir\\Main.cpp.obj -c C:\\Users\\User\\Desktop\\MasterHebrew\\VisualCodeMasterHebrew\\Main.cpp",
+  "file": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/Main.cpp"
+},
+{
+  "directory": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DCURL_STATICLIB @CMakeFiles/MasterHebrew.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MasterHebrew.dir\\Syntax.cpp.obj -c C:\\Users\\User\\Desktop\\MasterHebrew\\VisualCodeMasterHebrew\\Syntax.cpp",
+  "file": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/Syntax.cpp"
+},
+{
+  "directory": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DCURL_STATICLIB @CMakeFiles/MasterHebrew.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MasterHebrew.dir\\Dictionary.cpp.obj -c C:\\Users\\User\\Desktop\\MasterHebrew\\VisualCodeMasterHebrew\\Dictionary.cpp",
+  "file": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/Dictionary.cpp"
+},
+{
+  "directory": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DCURL_STATICLIB @CMakeFiles/MasterHebrew.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MasterHebrew.dir\\EndWordObject.cpp.obj -c C:\\Users\\User\\Desktop\\MasterHebrew\\VisualCodeMasterHebrew\\EndWordObject.cpp",
+  "file": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/EndWordObject.cpp"
+},
+{
+  "directory": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DCURL_STATICLIB @CMakeFiles/MasterHebrew.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MasterHebrew.dir\\ValueObject.cpp.obj -c C:\\Users\\User\\Desktop\\MasterHebrew\\VisualCodeMasterHebrew\\ValueObject.cpp",
+  "file": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/ValueObject.cpp"
+},
+{
+  "directory": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DCURL_STATICLIB @CMakeFiles/MasterHebrew.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MasterHebrew.dir\\Lexical.cpp.obj -c C:\\Users\\User\\Desktop\\MasterHebrew\\VisualCodeMasterHebrew\\Lexical.cpp",
+  "file": "C:/Users/User/Desktop/MasterHebrew/VisualCodeMasterHebrew/Lexical.cpp"
+}
+]
